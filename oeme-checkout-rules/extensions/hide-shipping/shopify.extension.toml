@@ -1,0 +1,21 @@
+api_version = "2025-07"
+
+[[extensions]]
+name = "t:name"
+handle = "hide-shipping"
+type = "function"
+uid = "60928f0a-6b67-1368-71bb-f3bf7e53f8cc6af6a290"
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "cart.delivery-options.transform.run"
+  input_query = "src/cart_delivery_options_transform_run.graphql"
+  export = "cart-delivery-options-transform-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"
+
+  [extensions.ui.paths]
+  create = "/"
+  details = "/"

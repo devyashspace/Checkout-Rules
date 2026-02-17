@@ -1,0 +1,7 @@
+query CartPaymentMethodsTransformRunInput {
+  paymentCustomization {
+    metafield(namespace: "$app:hide-cod", key: "function-configuration") {
+      value
+    }
+  }
+}

@@ -1,0 +1,31 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "02d2cc6b9b8aea395e4a3d02c1863c28"
+name = "Oeme Checkout Rules"
+application_url = "https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/app/"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2026-01"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_checkouts,read_checkouts,read_delivery_customizations,write_delivery_customizations,read_orders,write_orders"
+optional_scopes = [ ]
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = [
+  "https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/callback/"
+]
+
+[[extensions]]
+handle = "hide-shipping"
+type = "delivery_customization"
+
+[[extensions]]
+handle = "hide-cod"
+type = "payment_customization"
