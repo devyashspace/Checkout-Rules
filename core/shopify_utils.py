@@ -95,3 +95,5 @@ def get_shipping_methods(shop, access_token):
             methods.append(rate["name"])
 
     return list(set(methods))
+
+

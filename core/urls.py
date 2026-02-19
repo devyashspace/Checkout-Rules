@@ -9,6 +9,6 @@ urlpatterns = [
     path("upgrade/", upgrade),
     path("billing/callback/", billing_callback),
     path("activate_rule/", activate_rule, name="activate_rule"),
-
+    
 
 ]

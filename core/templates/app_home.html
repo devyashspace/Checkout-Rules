@@ -25,6 +25,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="shop_domain" value="{{ shop.shop_domain }}">
                         <input type="hidden" name="shipping_method" value="{{ rule.shipping_method_name }}">
+                        <input type="hidden" name="rule_type" value="{{ rule.rule_type }}">
                         <button type="submit">Activate</button>
                     </form>
 

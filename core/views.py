@@ -209,18 +209,15 @@ def activate_rule(request):
     shop = Shop.objects.filter(shop_domain=shop_domain).first()
 
     keyword = request.POST.get("shipping_method")
+    rule_type = request.POST.get("rule_type")
 
     # create once
-    if not shop.delivery_customization_id:
-        delivery_id = create_delivery_customization(
-            shop.shop_domain,
-            shop.access_token
-        )
-        shop.delivery_customization_id = delivery_id
-        shop.save()
-    else:
-        delivery_id = shop.delivery_customization_id
-
+    
+    delivery_id = create_delivery_customization(
+        shop.shop_domain,
+        shop.access_token
+    )
+    
     save_shipping_config(
         shop.shop_domain,
         shop.access_token,
