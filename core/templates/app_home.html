@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Shipping & COD Rules</title>
+</head>
+<body>
+
+    <h2>Smart Shipping & COD Rules</h2>
+
+    <p><strong>Shop:</strong> {{ shop.shop_domain }}</p>
+    <p><strong>Plan:</strong> {{ shop.plan }}</p>
+
+    <hr>
+
+    <h3>Your Rules</h3>
+
+    {% if rules %}
+        <ul>
+            {% for rule in rules %}
+                <li>
+                    <strong>{{ rule.name }}</strong><br>
+                    Shipping Method: {{ rule.shipping_method_name }}<br>
+
+                    <form method="POST" action="/shopify/activate_rule/">
+                        {% csrf_token %}
+                        <input type="hidden" name="shop_domain" value="{{ shop.shop_domain }}">
+                        <input type="hidden" name="shipping_method" value="{{ rule.shipping_method_name }}">
+                        <button type="submit">Activate</button>
+                    </form>
+
+                    <hr>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No rules created yet.</p>
+    {% endif %}
+
+    <br>
+
+    <a href="{% url 'create_rule' %}?shop={{ shop.shop_domain }}">
+        <button>Create New Rule</button>
+    </a>
+
+    {% if shop.plan == "free" %}
+        <br><br>
+        <a href="/shopify/upgrade/?shop={{ shop.shop_domain }}">
+            <button>Upgrade to Pro</button>
+        </a>
+    {% endif %}
+
+</body>
+</html>
