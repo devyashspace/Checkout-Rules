@@ -1,0 +1,93 @@
+App name - Oeme Checkout Rules
+Developer - Dev Yash
+Organization - Oeme
+Gen Language - English
+Framework - Django
+Backend - Python
+Frontend - Html, JavaScript, CSS
+App For - Shopify App Store
+Start Date - 15 Jan 2026
+Purpose - 
+
+............................................................................
+............................................................................
+
+Install python
+
+
+Now create folder "Checkout-Rules"
+
+
+Open folder "Checkout-Rules" in vs code
+
+
+Create Virtual environment
+->python -m venv venv
+
+
+Activate Virtual environment
+->source venv/bin/activate
+
+
+Install Django and other libraries
+->pip install Django
+->pip install dotenv
+->pip install requests
+
+
+Create project (Don't forget dot at end)
+->django-admin startproject checkout_rules .
+
+
+Create app
+->python manage.py startapp core 
+
+
+Create .env file
+->touch .env
+
+
+Go to ngrok website and get auth token
+
+
+Now actiavte auth token
+->ngrok config add-authtoken "Your auth token"
+
+
+Now create templates folder in "core"
+
+
+Now open global terminal and install shopify cli
+->brew tap shopify/shopify
+->brew install shopify-cli
+
+
+Now open vscode terminal
+->shopify auth login
+->shopify app init
+->This will create a folder with app name in root Directory
+
+
+Go to app folder
+->cd oeme-checkout-rules
+
+
+Create extensions
+->shopify app generate extension
+
+
+Then deploy
+->shopify app deploy
+
+
+Directory Overview
+        Checkout-Rules
+            --checkout_rules
+            --core
+            --oeme-checkout-rules
+                --extensions
+                    --your-extension-name
+            --templates
+            --venv
+            --.env
+            --manage.py
