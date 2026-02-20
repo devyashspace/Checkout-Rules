@@ -41,6 +41,17 @@ class Rule(models.Model):
     cod_fee_is_percent = models.BooleanField(default=False)
     shipping_method_name = models.CharField(max_length=100, null=True, blank=True)
 
+    CONDITION_TYPE_CHOICES = [
+        ("and", "All conditions must match (AND)"),
+        ("or", "Any condition can match (OR)"),
+    ]
+
+    condition_type = models.CharField(
+        max_length=10,
+        choices=CONDITION_TYPE_CHOICES,
+        default="and"
+    )
+
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

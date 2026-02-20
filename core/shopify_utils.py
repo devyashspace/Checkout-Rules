@@ -38,7 +38,7 @@ def create_delivery_customization(shop, access_token):
     return data["data"]["deliveryCustomizationCreate"]["deliveryCustomization"]["id"]
 
 
-def save_shipping_config(shop, access_token, delivery_id, keyword):
+def save_shipping_config(shop, access_token, delivery_id, keyword, min_cart_value=None, region=None, condition_type="and"):
     url = f"https://{shop}/admin/api/2025-07/graphql.json"
 
     query = """
@@ -57,7 +57,12 @@ def save_shipping_config(shop, access_token, delivery_id, keyword):
                 "key": "function-configuration",
                 "ownerId": delivery_id,
                 "type": "json",
-                "value": json.dumps({"keyword": keyword})
+                "value": json.dumps({
+                    "keyword": keyword,
+                    "min_cart_value": min_cart_value,
+                    "region": region,
+                    "condition_type": condition_type
+                })
             }
         ]
     }

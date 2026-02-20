@@ -10,23 +10,40 @@
 <body>
     <h2>Create Rule</h2>
 
-    <form method="POST"> {% csrf_token %}
+    <form method="POST">
+        {% csrf_token %}
+
         <label>Rule Name:</label><br>
         <input type="text" name="name"><br><br>
 
         <label>Rule Type:</label><br>
         <select name="rule_type">
-            <option value="disable_cod_min_cart">Disable COD below cart value</option>
-            <option value="add_cod_fee">Add COD fee</option>
+            <option value="hide_shipping">Hide shipping method</option>
         </select><br><br>
 
         <label>Min Cart Value:</label><br>
-        <input type="number" name="min_cart_value"><br><br>
+        <input type="number" step="0.01" name="min_cart_value"><br><br>
+
+        <label>Region:</label><br>
+        <select name="region">
+            <option value="">All Regions</option>
+            <option value="IN">India</option>
+            <option value="US">United States</option>
+            <option value="CA">Canada</option>
+        </select>
+
+        <label>Condition Logic:</label><br>
+        <select name="condition_type">
+            <option value="and">All conditions must match (AND)</option>
+            <option value="or">Any condition can match (OR)</option>
+        </select><br><br>
 
         <label>Select Shipping Method to Hide:</label><br>
-        <select name="shipping_method"> {% for m in methods %}
-            <option value="{{ m }}">{{ m }}</option> {% endfor %}
-        </select> <br><br>
+        <select name="shipping_method">
+            {% for m in methods %}
+            <option value="{{ m }}">{{ m }}</option>
+            {% endfor %}
+        </select><br><br>
 
         <button type="submit">Save Rule</button>
     </form>

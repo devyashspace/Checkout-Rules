@@ -121,6 +121,8 @@ def create_rule(request):
             rule_type=request.POST.get("rule_type"),
             min_cart_value=request.POST.get("min_cart_value") or None,
             shipping_method_name=request.POST.get("shipping_method") or None,
+            region=request.POST.get("region"),
+            condition_type=request.POST.get("condition_type") or "and",
         )
 
         return redirect(f"/shopify/app/?shop={shop.shop_domain}")
@@ -209,6 +211,9 @@ def activate_rule(request):
     shop = Shop.objects.filter(shop_domain=shop_domain).first()
 
     keyword = request.POST.get("shipping_method")
+    min_cart_value = request.POST.get("min_cart_value")
+    region = request.POST.get("region")
+    condition_type = request.POST.get("condition_type")
     rule_type = request.POST.get("rule_type")
 
     # create once
@@ -222,7 +227,10 @@ def activate_rule(request):
         shop.shop_domain,
         shop.access_token,
         delivery_id,
-        keyword
+        keyword,
+        min_cart_value,
+        region,
+        condition_type
     )
 
 

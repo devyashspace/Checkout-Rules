@@ -1,6 +1,14 @@
 query RunInput {
   cart {
+    cost {
+      subtotalAmount {
+        amount
+      }
+    }
     deliveryGroups {
+      deliveryAddress {
+        countryCode
+      }
       deliveryOptions {
         handle
         title

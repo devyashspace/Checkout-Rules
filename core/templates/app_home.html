@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Smart Shipping & COD Rules</title>
 </head>
+
 <body>
 
     <h2>Smart Shipping & COD Rules</h2>
@@ -15,26 +17,28 @@
     <h3>Your Rules</h3>
 
     {% if rules %}
-        <ul>
-            {% for rule in rules %}
-                <li>
-                    <strong>{{ rule.name }}</strong><br>
-                    Shipping Method: {{ rule.shipping_method_name }}<br>
+    <ul>
+        {% for rule in rules %}
+        <li>
+            <strong>{{ rule.name }}</strong><br>
+            Shipping Method: {{ rule.shipping_method_name }}<br>
 
-                    <form method="POST" action="/shopify/activate_rule/">
-                        {% csrf_token %}
-                        <input type="hidden" name="shop_domain" value="{{ shop.shop_domain }}">
-                        <input type="hidden" name="shipping_method" value="{{ rule.shipping_method_name }}">
-                        <input type="hidden" name="rule_type" value="{{ rule.rule_type }}">
-                        <button type="submit">Activate</button>
-                    </form>
+            <form method="POST" action="/shopify/activate_rule/">
+                {% csrf_token %}
+                <input type="hidden" name="shop_domain" value="{{ shop.shop_domain }}">
+                <input type="hidden" name="shipping_method" value="{{ rule.shipping_method_name }}">
+                <input type="hidden" name="condition_type" value="{{ rule.condition_type }}">
+                <input type="hidden" name="min_cart_value" value="{{ rule.min_cart_value }}">
+                <input type="hidden" name="region" value="{{ rule.region }}">
+                <button type="submit">Activate</button>
+            </form>
 
-                    <hr>
-                </li>
-            {% endfor %}
-        </ul>
+            <hr>
+        </li>
+        {% endfor %}
+    </ul>
     {% else %}
-        <p>No rules created yet.</p>
+    <p>No rules created yet.</p>
     {% endif %}
 
     <br>
@@ -44,11 +48,12 @@
     </a>
 
     {% if shop.plan == "free" %}
-        <br><br>
-        <a href="/shopify/upgrade/?shop={{ shop.shop_domain }}">
-            <button>Upgrade to Pro</button>
-        </a>
+    <br><br>
+    <a href="/shopify/upgrade/?shop={{ shop.shop_domain }}">
+        <button>Upgrade to Pro</button>
+    </a>
     {% endif %}
 
 </body>
+
 </html>

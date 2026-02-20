@@ -117,6 +117,7 @@ def create_rule(request):
             rule_type=request.POST.get("rule_type"),
             min_cart_value=request.POST.get("min_cart_value") or None,
             shipping_method_name=request.POST.get("shipping_method") or None,
+            region=request.POST.get("region"),
         )
 
         return redirect(f"/shopify/app/?shop={shop.shop_domain}")
@@ -205,6 +206,8 @@ def activate_rule(request):
     shop = Shop.objects.filter(shop_domain=shop_domain).first()
 
     keyword = request.POST.get("shipping_method")
+    min_cart_value = request.POST.get("min_cart_value")
+    region = request.POST.get("region")
     rule_type = request.POST.get("rule_type")
 
     # create once
@@ -218,7 +221,9 @@ def activate_rule(request):
         shop.shop_domain,
         shop.access_token,
         delivery_id,
-        keyword
+        keyword,
+        min_cart_value,
+        region
     )
 
 
@@ -269,7 +274,7 @@ def create_delivery_customization(shop, access_token):
     return data["data"]["deliveryCustomizationCreate"]["deliveryCustomization"]["id"]
 
 
-def save_shipping_config(shop, access_token, delivery_id, keyword):
+def save_shipping_config(shop, access_token, delivery_id, keyword, min_cart_value=None, region=None):
     url = f"https://{shop}/admin/api/2025-07/graphql.json"
 
     query = """
@@ -288,7 +293,11 @@ def save_shipping_config(shop, access_token, delivery_id, keyword):
                 "key": "function-configuration",
                 "ownerId": delivery_id,
                 "type": "json",
-                "value": json.dumps({"keyword": keyword})
+                "value": json.dumps({
+                    "keyword": keyword,
+                    "min_cart_value": min_cart_value,
+                    "region": region
+                })
             }
         ]
     }
@@ -411,23 +420,34 @@ create_rule.html................................................................
 <body>
     <h2>Create Rule</h2>
 
-    <form method="POST"> {% csrf_token %}
+    <form method="POST">
+        {% csrf_token %}
+
         <label>Rule Name:</label><br>
         <input type="text" name="name"><br><br>
 
         <label>Rule Type:</label><br>
         <select name="rule_type">
-            <option value="disable_cod_min_cart">Disable COD below cart value</option>
-            <option value="add_cod_fee">Add COD fee</option>
+            <option value="hide_shipping">Hide shipping method</option>
         </select><br><br>
 
         <label>Min Cart Value:</label><br>
-        <input type="number" name="min_cart_value"><br><br>
+        <input type="number" step="0.01" name="min_cart_value"><br><br>
+
+        <label>Region:</label><br>
+        <select name="region">
+            <option value="">All Regions</option>
+            <option value="IN">India</option>
+            <option value="US">United States</option>
+            <option value="CA">Canada</option>
+        </select>
 
         <label>Select Shipping Method to Hide:</label><br>
-        <select name="shipping_method"> {% for m in methods %}
-            <option value="{{ m }}">{{ m }}</option> {% endfor %}
-        </select> <br><br>
+        <select name="shipping_method">
+            {% for m in methods %}
+            <option value="{{ m }}">{{ m }}</option>
+            {% endfor %}
+        </select><br><br>
 
         <button type="submit">Save Rule</button>
     </form>
@@ -441,31 +461,35 @@ export function cartDeliveryOptionsTransformRun(input) {
   const config =
     input.deliveryCustomization?.metafield?.jsonValue || {};
 
-  const keyword = (config.keyword || "")
-    .trim()
-    .toLowerCase();
-
-  // DEBUG LOG
-  console.error("KEYWORD:", keyword);
+  const keyword = (config.keyword || "").trim().toLowerCase();
+  const minCartValue = parseFloat(config.min_cart_value || 0);
+  const region = (config.region || "").toLowerCase();
 
   const operations = [];
 
-  if (!keyword) {
-    console.error("NO KEYWORD FOUND");
+  if (!keyword) return { operations };
+
+  // Get cart total
+  const cartTotal = parseFloat(input.cart.cost?.subtotalAmount?.amount || 0);
+
+  // Get shipping country
+  const shippingCountry =
+    input.cart.deliveryGroups?.[0]?.deliveryAddress?.countryCode?.toLowerCase() || "";
+
+  // 🧠 Condition checks
+  const cartCondition = minCartValue ? cartTotal >= minCartValue : true;
+  const regionCondition = region ? shippingCountry === region : true;
+
+  if (!cartCondition || !regionCondition) {
     return { operations };
   }
 
   for (const group of input.cart.deliveryGroups) {
     for (const option of group.deliveryOptions) {
-
-      console.error("OPTION:", option.title);
-
       if (
         option.title &&
         option.title.toLowerCase().includes(keyword)
       ) {
-        console.error("HIDING:", option.title);
-
         operations.push({
           deliveryOptionHide: {
             deliveryOptionHandle: option.handle
@@ -477,6 +501,4 @@ export function cartDeliveryOptionsTransformRun(input) {
 
   return { operations };
 }
-
-
 
