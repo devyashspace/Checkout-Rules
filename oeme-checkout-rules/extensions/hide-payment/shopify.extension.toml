@@ -1,0 +1,25 @@
+api_version = "2026-01"
+
+[[extensions]]
+name = "t:name"
+handle = "hide-payment"
+type = "function"
+uid = "98f835a8-883e-ecf4-b859-8701c1a4ddd535509291"
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "cart.payment-methods.transform.run"
+  input_query = "src/cart_payment_methods_transform_run.graphql"
+  export = "cart-payment-methods-transform-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"
+
+  [extensions.ui.paths]
+  create = "/"
+  details = "/"
+
+  [[extensions.metafields]]
+  namespace = "$app:hide-payment"
+  key = "function-configuration"

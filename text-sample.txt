@@ -1,4 +1,4 @@
-Views.py.........................................................................................
+views.py-------
 
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -10,7 +10,7 @@ import requests
 from django.conf import settings
 from .models import Shop, Rule
 from django.shortcuts import render
-from .shopify_utils import create_delivery_customization, save_shipping_config, get_shipping_methods
+from .shopify_utils import create_delivery_customization, save_shipping_config, get_shipping_methods, create_payment_customization, save_payment_config, get_payment_methods
 
 
 #https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/install/?shop=teststoreone-3413.myshopify.com
@@ -72,6 +72,12 @@ def callback(request):
         defaults={"access_token": access_token, "is_active": True},
     )
 
+    
+
+    
+
+    
+
     host = request.GET.get("host")
 
     return redirect(f"/shopify/app/?shop={shop}&host={host}")
@@ -117,7 +123,9 @@ def create_rule(request):
             rule_type=request.POST.get("rule_type"),
             min_cart_value=request.POST.get("min_cart_value") or None,
             shipping_method_name=request.POST.get("shipping_method") or None,
+            payment_method_name=request.POST.get("payment_method") or None,
             region=request.POST.get("region"),
+            condition_type=request.POST.get("condition_type") or "and",
         )
 
         return redirect(f"/shopify/app/?shop={shop.shop_domain}")
@@ -128,8 +136,14 @@ def create_rule(request):
         shop.access_token
     )
 
+    payment_methods = get_payment_methods(
+        shop.shop_domain,
+        shop.access_token
+    )
+
     return render(request, "create_rule.html", {
-        "methods": methods
+        "methods": methods,
+        "payment_methods": payment_methods
     })
 
 
@@ -205,34 +219,53 @@ def activate_rule(request):
     shop_domain = request.POST.get("shop_domain")
     shop = Shop.objects.filter(shop_domain=shop_domain).first()
 
-    keyword = request.POST.get("shipping_method")
+    shipping_method = request.POST.get("shipping_method")
+    payment_method = request.POST.get("payment_method")
     min_cart_value = request.POST.get("min_cart_value")
     region = request.POST.get("region")
+    condition_type = request.POST.get("condition_type")
     rule_type = request.POST.get("rule_type")
 
-    # create once
-    
-    delivery_id = create_delivery_customization(
-        shop.shop_domain,
-        shop.access_token
-    )
-    
-    save_shipping_config(
-        shop.shop_domain,
-        shop.access_token,
-        delivery_id,
-        keyword,
-        min_cart_value,
-        region
-    )
+    if rule_type == "hide_payment":
+        payment_id = create_payment_customization(
+            shop.shop_domain,
+            shop.access_token
+        )
 
+        save_payment_config(
+            shop.shop_domain,
+            shop.access_token,
+            payment_id,
+            payment_method,
+            min_cart_value,
+            region,
+            condition_type
+        )
 
-    print("Activated, Shipping Method:", keyword)
+        print("Activated, Payment Method:", payment_method)
+
+    if rule_type == "hide_shipping":
+        delivery_id = create_delivery_customization(
+            shop.shop_domain,
+            shop.access_token
+        )
+        
+        save_shipping_config(
+            shop.shop_domain,
+            shop.access_token,
+            delivery_id,
+            shipping_method,
+            min_cart_value,
+            region,
+            condition_type
+        )
+
+        print("Activated, Shipping Method:", shipping_method)
 
     return redirect(f"/shopify/app/?shop={shop.shop_domain}")
 
 
-shopify_utils.py....................................................................................
+shopify_utils.py-------
 
 import requests
 import json
@@ -274,7 +307,7 @@ def create_delivery_customization(shop, access_token):
     return data["data"]["deliveryCustomizationCreate"]["deliveryCustomization"]["id"]
 
 
-def save_shipping_config(shop, access_token, delivery_id, keyword, min_cart_value=None, region=None):
+def save_shipping_config(shop, access_token, delivery_id, keyword, min_cart_value=None, region=None, condition_type="and"):
     url = f"https://{shop}/admin/api/2025-07/graphql.json"
 
     query = """
@@ -296,7 +329,8 @@ def save_shipping_config(shop, access_token, delivery_id, keyword, min_cart_valu
                 "value": json.dumps({
                     "keyword": keyword,
                     "min_cart_value": min_cart_value,
-                    "region": region
+                    "region": region,
+                    "condition_type": condition_type
                 })
             }
         ]
@@ -337,168 +371,453 @@ def get_shipping_methods(shop, access_token):
     return list(set(methods))
 
 
-models.py......................................................................................
+def create_payment_customization(shop, access_token):
+    url = f"https://{shop}/admin/api/2026-01/graphql.json"
 
-from django.db import models
+    query = """
+    mutation {
+      paymentCustomizationCreate(
+        paymentCustomization: {
+          title: "Hide Payment"
+          enabled: true
+          functionHandle: "hide-payment"
+        }
+      ) {
+        paymentCustomization {
+          id
+        }
+        userErrors {
+          message
+        }
+      }
+    }
+    """
 
-class Shop(models.Model):
-    shop_domain = models.CharField(max_length=255, unique=True)
-    access_token = models.CharField(max_length=255)
-    delivery_customization_id = models.CharField(max_length=255, null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-    installed_at = models.DateTimeField(auto_now_add=True)
-
-    PLAN_CHOICES = [
-        ("free", "Free"),
-        ("pro", "Pro"),
-    ]
-
-    plan = models.CharField(
-        max_length=10,
-        choices=PLAN_CHOICES,
-        default="free"
+    res = requests.post(
+        url,
+        json={"query": query},
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
     )
 
-    def __str__(self):
-        return self.shop_domain
+    data = res.json()
+    print(json.dumps(data, indent=2))
+
+    return data["data"]["paymentCustomizationCreate"]["paymentCustomization"]["id"]
 
 
-class Rule(models.Model):
-    RULE_TYPE_CHOICES = [
-        ("disable_cod_min_cart", "Disable COD below cart value"),
-        ("disable_cod_region", "Disable COD for region"),
-        ("add_cod_fee", "Add COD fee"),
-        ("hide_shipping", "Hide shipping method"),
-    ]
+def save_payment_config(shop, access_token, payment_id, keyword, min_cart_value=None, region=None, condition_type="and"):
+    url = f"https://{shop}/admin/api/2025-07/graphql.json"
 
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="rules")
-    name = models.CharField(max_length=100)
-    rule_type = models.CharField(max_length=50, choices=RULE_TYPE_CHOICES)
+    query = """
+    mutation metafieldsSet($metafields:[MetafieldsSetInput!]!) {
+      metafieldsSet(metafields:$metafields) {
+        metafields { id }
+        userErrors { message }
+      }
+    }
+    """
 
-    # Generic fields to keep MVP simple
-    min_cart_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    region = models.CharField(max_length=100, null=True, blank=True)
-    cod_fee_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    cod_fee_is_percent = models.BooleanField(default=False)
-    shipping_method_name = models.CharField(max_length=100, null=True, blank=True)
+    variables = {
+        "metafields": [
+            {
+                "namespace": "$app:hide-payment",
+                "key": "function-configuration",
+                "ownerId": payment_id,
+                "type": "json",
+                "value": json.dumps({
+                    "keyword": keyword,
+                    "min_cart_value": min_cart_value,
+                    "region": region,
+                    "condition_type": condition_type
+                })
+            }
+        ]
+    }
 
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    response = requests.post(
+        url,
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
+        json={"query": query, "variables": variables},
+    )
 
-    def __str__(self):
-        return f"{self.name} ({self.shop.shop_domain})"
+    print("PAYMENT METAFIELD SAVE:", response.json())
+
+    return response.json()
 
 
-urls.py........................................................................................
+def get_payment_methods(shop, access_token):
+    url = f"https://{shop}/admin/api/2026-01/graphql.json"
 
-from django.urls import path
-from .views import install, callback, app_home, create_rule, upgrade, billing_callback, activate_rule
-
-urlpatterns = [
-    path("install/", install, name="shopify_install"),
-    path("callback/", callback, name="shopify_callback"),
-    path("app/", app_home, name="app_home"),
-    path("rules/create/", create_rule, name="create_rule"),
-    path("upgrade/", upgrade),
-    path("billing/callback/", billing_callback),
-    path("activate_rule/", activate_rule, name="activate_rule"),
-    
-
-]
-
-create_rule.html...............................................................................
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-
-<body>
-    <h2>Create Rule</h2>
-
-    <form method="POST">
-        {% csrf_token %}
-
-        <label>Rule Name:</label><br>
-        <input type="text" name="name"><br><br>
-
-        <label>Rule Type:</label><br>
-        <select name="rule_type">
-            <option value="hide_shipping">Hide shipping method</option>
-        </select><br><br>
-
-        <label>Min Cart Value:</label><br>
-        <input type="number" step="0.01" name="min_cart_value"><br><br>
-
-        <label>Region:</label><br>
-        <select name="region">
-            <option value="">All Regions</option>
-            <option value="IN">India</option>
-            <option value="US">United States</option>
-            <option value="CA">Canada</option>
-        </select>
-
-        <label>Select Shipping Method to Hide:</label><br>
-        <select name="shipping_method">
-            {% for m in methods %}
-            <option value="{{ m }}">{{ m }}</option>
-            {% endfor %}
-        </select><br><br>
-
-        <button type="submit">Save Rule</button>
-    </form>
-</body>
-
-</html>
-
-cart_delivery_options_transform_run.js
-
-export function cartDeliveryOptionsTransformRun(input) {
-  const config =
-    input.deliveryCustomization?.metafield?.jsonValue || {};
-
-  const keyword = (config.keyword || "").trim().toLowerCase();
-  const minCartValue = parseFloat(config.min_cart_value || 0);
-  const region = (config.region || "").toLowerCase();
-
-  const operations = [];
-
-  if (!keyword) return { operations };
-
-  // Get cart total
-  const cartTotal = parseFloat(input.cart.cost?.subtotalAmount?.amount || 0);
-
-  // Get shipping country
-  const shippingCountry =
-    input.cart.deliveryGroups?.[0]?.deliveryAddress?.countryCode?.toLowerCase() || "";
-
-  // 🧠 Condition checks
-  const cartCondition = minCartValue ? cartTotal >= minCartValue : true;
-  const regionCondition = region ? shippingCountry === region : true;
-
-  if (!cartCondition || !regionCondition) {
-    return { operations };
-  }
-
-  for (const group of input.cart.deliveryGroups) {
-    for (const option of group.deliveryOptions) {
-      if (
-        option.title &&
-        option.title.toLowerCase().includes(keyword)
-      ) {
-        operations.push({
-          deliveryOptionHide: {
-            deliveryOptionHandle: option.handle
+    query = """
+    query {
+      shop {
+        paymentSettings {
+          availablePaymentMethods {
+            name
+            type
           }
-        });
+        }
+      }
+    }
+    """
+
+    response = requests.post(
+        url,
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
+        json={"query": query},
+    )
+
+    data = response.json()
+    print("PAYMENT METHODS RESPONSE:", data)
+
+    methods = []
+
+    try:
+        payment_methods = data["data"]["shop"]["paymentSettings"]["availablePaymentMethods"]
+        for method in payment_methods:
+            methods.append(method["name"])
+    except:
+        pass
+
+    return methods
+
+    cart_payment_methods_transform_run.js----------
+
+    import requests
+import json
+
+def create_delivery_customization(shop, access_token):
+    url = f"https://{shop}/admin/api/2026-01/graphql.json"
+
+    query = """
+    mutation {
+      deliveryCustomizationCreate(
+        deliveryCustomization: {
+          title: "Hide Shipping"
+          enabled: true
+          functionHandle: "hide-shipping"
+        }
+      ) {
+        deliveryCustomization {
+          id
+        }
+        userErrors {
+          message
+        }
+      }
+    }
+    """
+
+    res = requests.post(
+        url,
+        json={"query": query},
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
+    )
+
+    data = res.json()
+    print(json.dumps(data, indent=2))
+
+    return data["data"]["deliveryCustomizationCreate"]["deliveryCustomization"]["id"]
+
+
+def save_shipping_config(shop, access_token, delivery_id, keyword, min_cart_value=None, region=None, condition_type="and"):
+    url = f"https://{shop}/admin/api/2025-07/graphql.json"
+
+    query = """
+    mutation metafieldsSet($metafields:[MetafieldsSetInput!]!) {
+      metafieldsSet(metafields:$metafields) {
+        metafields { id }
+        userErrors { message }
+      }
+    }
+    """
+
+    variables = {
+        "metafields": [
+            {
+                "namespace": "$app:hide-shipping",
+                "key": "function-configuration",
+                "ownerId": delivery_id,
+                "type": "json",
+                "value": json.dumps({
+                    "keyword": keyword,
+                    "min_cart_value": min_cart_value,
+                    "region": region,
+                    "condition_type": condition_type
+                })
+            }
+        ]
+    }
+
+    response = requests.post(
+        url,
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
+        json={"query": query, "variables": variables},
+    )
+
+    # DEBUG PRINT
+    print("METAFIELD SAVE RESPONSE:", response.json())
+
+    return response.json()
+
+
+def get_shipping_methods(shop, access_token):
+    url = f"https://{shop}/admin/api/2025-01/shipping_zones.json"
+
+    r = requests.get(
+        url,
+        headers={"X-Shopify-Access-Token": access_token}
+    ).json()
+
+    methods = []
+
+    for zone in r.get("shipping_zones", []):
+        for rate in zone.get("price_based_shipping_rates", []):
+            methods.append(rate["name"])
+
+        for rate in zone.get("weight_based_shipping_rates", []):
+            methods.append(rate["name"])
+
+    return list(set(methods))
+
+
+def create_payment_customization(shop, access_token):
+    url = f"https://{shop}/admin/api/2026-01/graphql.json"
+
+    query = """
+    mutation {
+      paymentCustomizationCreate(
+        paymentCustomization: {
+          title: "Hide Payment"
+          enabled: true
+          functionHandle: "hide-payment"
+        }
+      ) {
+        paymentCustomization {
+          id
+        }
+        userErrors {
+          message
+        }
+      }
+    }
+    """
+
+    res = requests.post(
+        url,
+        json={"query": query},
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
+    )
+
+    data = res.json()
+    print(json.dumps(data, indent=2))
+
+    return data["data"]["paymentCustomizationCreate"]["paymentCustomization"]["id"]
+
+
+def save_payment_config(shop, access_token, payment_id, keyword, min_cart_value=None, region=None, condition_type="and"):
+    url = f"https://{shop}/admin/api/2025-07/graphql.json"
+
+    query = """
+    mutation metafieldsSet($metafields:[MetafieldsSetInput!]!) {
+      metafieldsSet(metafields:$metafields) {
+        metafields { id }
+        userErrors { message }
+      }
+    }
+    """
+
+    variables = {
+        "metafields": [
+            {
+                "namespace": "$app:hide-payment",
+                "key": "function-configuration",
+                "ownerId": payment_id,
+                "type": "json",
+                "value": json.dumps({
+                    "keyword": keyword,
+                    "min_cart_value": min_cart_value,
+                    "region": region,
+                    "condition_type": condition_type
+                })
+            }
+        ]
+    }
+
+    response = requests.post(
+        url,
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
+        json={"query": query, "variables": variables},
+    )
+
+    print("PAYMENT METAFIELD SAVE:", response.json())
+
+    return response.json()
+
+
+def get_payment_methods(shop, access_token):
+    url = f"https://{shop}/admin/api/2026-01/graphql.json"
+
+    query = """
+    query {
+      shop {
+        paymentSettings {
+          availablePaymentMethods {
+            name
+            type
+          }
+        }
+      }
+    }
+    """
+
+    response = requests.post(
+        url,
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
+        json={"query": query},
+    )
+
+    data = response.json()
+    print("PAYMENT METHODS RESPONSE:", data)
+
+    methods = []
+
+    try:
+        payment_methods = data["data"]["shop"]["paymentSettings"]["availablePaymentMethods"]
+        for method in payment_methods:
+            methods.append(method["name"])
+    except:
+        pass
+
+    return methods
+
+    cart_delivery_options_transform_run.graphql-----
+
+    query RunInput {
+  cart {
+    cost {
+      subtotalAmount {
+        amount
+      }
+    }
+    deliveryGroups {
+      deliveryAddress {
+        countryCode
       }
     }
   }
 
-  return { operations };
+  paymentMethods {
+    id
+    name
+  }
+
+  paymentCustomization {
+    metafield(
+      namespace: "$app:hide-payment"
+      key: "function-configuration"
+    ) {
+      jsonValue
+    }
+  }
 }
 
+logs-----------
+
+{
+  "shopId": 75423023242,
+  "apiClientId": 324154785793,
+  "payload": {
+    "export": "cart-payment-methods-transform-run",
+    "input": {
+      "cart": {
+        "cost": {
+          "subtotalAmount": {
+            "amount": "30.0"
+          }
+        },
+        "deliveryGroups": [
+          {
+            "deliveryAddress": {
+              "countryCode": "IN"
+            }
+          }
+        ]
+      },
+      "paymentMethods": [
+        {
+          "id": "gid://shopify/PaymentCustomizationPaymentMethod/0",
+          "name": "Deferred"
+        },
+        {
+          "id": "gid://shopify/PaymentCustomizationPaymentMethod/1",
+          "name": "(for testing) Bogus Gateway"
+        },
+        {
+          "id": "gid://shopify/PaymentCustomizationPaymentMethod/2",
+          "name": "Stripe shared token"
+        },
+        {
+          "id": "gid://shopify/PaymentCustomizationPaymentMethod/3",
+          "name": "Gift card"
+        }
+      ],
+      "paymentCustomization": {
+        "metafield": {
+          "jsonValue": {
+            "keyword": "Bogus Gateway",
+            "min_cart_value": "2000.00",
+            "region": "IN",
+            "condition_type": "or"
+          }
+        }
+      }
+    },
+    "inputBytes": 530,
+    "output": {
+      "operations": [
+        {
+          "paymentMethodHide": {
+            "paymentMethodId": "gid://shopify/PaymentCustomizationPaymentMethod/1"
+          }
+        }
+      ]
+    },
+    "outputBytes": 100,
+    "logs": [],
+    "functionId": "019c94fa-92ae-7bf2-9453-8b161ac93e7e",
+    "fuelConsumed": 290830,
+    "target": "cart.payment-methods.transform.run"
+  },
+  "logType": "function_run",
+  "status": "success",
+  "source": "hide-payment",
+  "sourceNamespace": "extensions",
+  "logTimestamp": "2026-02-26T10:29:04.631516Z",
+  "localTime": "2026-02-26 15:59:04",
+  "storeName": "teststoreone-3413.myshopify.com"
+}

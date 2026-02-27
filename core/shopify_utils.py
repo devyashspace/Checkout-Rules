@@ -102,3 +102,92 @@ def get_shipping_methods(shop, access_token):
     return list(set(methods))
 
 
+def create_payment_customization(shop, access_token, rule_name):
+    url = f"https://{shop}/admin/api/2026-01/graphql.json"
+
+    query = """
+    mutation CreatePaymentCustomization($title: String!) {
+      paymentCustomizationCreate(
+        paymentCustomization: {
+          title: $title
+          enabled: true
+          functionHandle: "hide-payment"
+        }
+      ) {
+        paymentCustomization {
+          id
+        }
+        userErrors {
+          message
+        }
+      }
+    }
+    """
+
+    variables = {
+        "title": rule_name
+    }
+
+    res = requests.post(
+        url,
+        json={
+            "query": query,
+            "variables": variables
+        },
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
+    )
+
+    data = res.json()
+    print(json.dumps(data, indent=2))
+
+    return data["data"]["paymentCustomizationCreate"]["paymentCustomization"]["id"]
+
+
+def save_payment_config(shop, access_token, payment_id, keyword, min_cart_value=None, region=None, condition_type="and"):
+    url = f"https://{shop}/admin/api/2025-07/graphql.json"
+
+    query = """
+    mutation metafieldsSet($metafields:[MetafieldsSetInput!]!) {
+      metafieldsSet(metafields:$metafields) {
+        metafields { id }
+        userErrors { message }
+      }
+    }
+    """
+
+    variables = {
+        "metafields": [
+            {
+                "namespace": "$app:hide-payment",
+                "key": "function-configuration",
+                "ownerId": payment_id,
+                "type": "json",
+                "value": json.dumps({
+                    "keyword": keyword,
+                    "min_cart_value": min_cart_value,
+                    "region": region,
+                    "condition_type": condition_type
+                })
+            }
+        ]
+    }
+
+    response = requests.post(
+        url,
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        },
+        json={"query": query, "variables": variables},
+    )
+
+    print("PAYMENT METAFIELD SAVE:", response.json())
+
+    return response.json()
+
+
+
+    

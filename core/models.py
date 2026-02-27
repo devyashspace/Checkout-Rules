@@ -28,6 +28,7 @@ class Rule(models.Model):
         ("disable_cod_region", "Disable COD for region"),
         ("add_cod_fee", "Add COD fee"),
         ("hide_shipping", "Hide shipping method"),
+        ("hide_payment", "Hide payment method"),
     ]
 
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="rules")
@@ -40,6 +41,7 @@ class Rule(models.Model):
     cod_fee_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     cod_fee_is_percent = models.BooleanField(default=False)
     shipping_method_name = models.CharField(max_length=100, null=True, blank=True)
+    payment_method_name = models.CharField(max_length=100, null=True, blank=True)
 
     CONDITION_TYPE_CHOICES = [
         ("and", "All conditions must match (AND)"),

@@ -1,0 +1,28 @@
+query RunInput {
+  cart {
+    cost {
+      subtotalAmount {
+        amount
+      }
+    }
+    deliveryGroups {
+      deliveryAddress {
+        countryCode
+      }
+    }
+  }
+
+  paymentMethods {
+    id
+    name
+  }
+
+  paymentCustomization {
+    metafield(
+      namespace: "$app:hide-payment"
+      key: "function-configuration"
+    ) {
+      jsonValue
+    }
+  }
+}

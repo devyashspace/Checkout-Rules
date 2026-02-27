@@ -26,10 +26,13 @@
             <form method="POST" action="/shopify/activate_rule/">
                 {% csrf_token %}
                 <input type="hidden" name="shop_domain" value="{{ shop.shop_domain }}">
+                <input type="hidden" name="rule_name" value="{{ rule.name }}">
                 <input type="hidden" name="shipping_method" value="{{ rule.shipping_method_name }}">
+                <input type="hidden" name="payment_method" value="{{ rule.payment_method_name }}">
                 <input type="hidden" name="condition_type" value="{{ rule.condition_type }}">
                 <input type="hidden" name="min_cart_value" value="{{ rule.min_cart_value }}">
                 <input type="hidden" name="region" value="{{ rule.region }}">
+                <input type="hidden" name="rule_type" value="{{ rule.rule_type }}">
                 <button type="submit">Activate</button>
             </form>
 

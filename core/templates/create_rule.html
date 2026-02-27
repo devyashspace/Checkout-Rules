@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Create Rule</title>
 </head>
 
 <body>
@@ -17,8 +17,9 @@
         <input type="text" name="name"><br><br>
 
         <label>Rule Type:</label><br>
-        <select name="rule_type">
+        <select name="rule_type" id="ruleType">
             <option value="hide_shipping">Hide shipping method</option>
+            <option value="hide_payment">Hide payment method</option>
         </select><br><br>
 
         <label>Min Cart Value:</label><br>
@@ -30,7 +31,7 @@
             <option value="IN">India</option>
             <option value="US">United States</option>
             <option value="CA">Canada</option>
-        </select>
+        </select><br><br>
 
         <label>Condition Logic:</label><br>
         <select name="condition_type">
@@ -38,15 +39,47 @@
             <option value="or">Any condition can match (OR)</option>
         </select><br><br>
 
-        <label>Select Shipping Method to Hide:</label><br>
-        <select name="shipping_method">
-            {% for m in methods %}
-            <option value="{{ m }}">{{ m }}</option>
-            {% endfor %}
-        </select><br><br>
+        <!-- SHIPPING FIELD -->
+        <div id="shippingField">
+            <label>Select Shipping Method to Hide:</label><br>
+            <select name="shipping_method">
+                {% for m in methods %}
+                <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+            </select><br><br>
+        </div>
+
+        <!-- PAYMENT FIELD -->
+        <div id="paymentField" style="display:none;">
+            <label>Select Payment Method to Hide:</label><br>
+            <input type="text" name="payment_method" id=""><br><br>
+        </div>
 
         <button type="submit">Save Rule</button>
     </form>
+
+    <!-- 🔥 Dynamic Toggle Script -->
+    <script>
+        const ruleType = document.getElementById("ruleType");
+        const shippingField = document.getElementById("shippingField");
+        const paymentField = document.getElementById("paymentField");
+
+        function toggleFields() {
+            if (ruleType.value === "hide_payment") {
+                shippingField.style.display = "none";
+                paymentField.style.display = "block";
+            } else {
+                shippingField.style.display = "block";
+                paymentField.style.display = "none";
+            }
+        }
+
+        ruleType.addEventListener("change", toggleFields);
+
+        // Run once on load
+        toggleFields();
+    </script>
+
 </body>
 
 </html>

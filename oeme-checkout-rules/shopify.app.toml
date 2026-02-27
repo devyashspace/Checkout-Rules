@@ -13,7 +13,7 @@ api_version = "2026-01"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_checkouts,read_delivery_customizations,read_orders,write_checkouts,write_delivery_customizations,write_orders"
+scopes = "read_checkouts,read_delivery_customizations,read_orders,write_checkouts,write_delivery_customizations,write_orders,read_payment_customizations,write_payment_customizations"
 optional_scopes = [ ]
 use_legacy_install_flow = true
 
@@ -28,4 +28,8 @@ type = "delivery_customization"
 
 [[extensions]]
 handle = "hide-cod"
+type = "payment_customization"
+
+[[extensions]]
+handle = "hide-payment"
 type = "payment_customization"

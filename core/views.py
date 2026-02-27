@@ -8,7 +8,7 @@ import requests
 from django.conf import settings
 from .models import Shop, Rule
 from django.shortcuts import render
-from .shopify_utils import create_delivery_customization, save_shipping_config, get_shipping_methods
+from .shopify_utils import create_delivery_customization, save_shipping_config, get_shipping_methods, create_payment_customization, save_payment_config
 
 
 #https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/install/?shop=teststoreone-3413.myshopify.com
@@ -121,6 +121,7 @@ def create_rule(request):
             rule_type=request.POST.get("rule_type"),
             min_cart_value=request.POST.get("min_cart_value") or None,
             shipping_method_name=request.POST.get("shipping_method") or None,
+            payment_method_name=request.POST.get("payment_method") or None,
             region=request.POST.get("region"),
             condition_type=request.POST.get("condition_type") or "and",
         )
@@ -134,7 +135,7 @@ def create_rule(request):
     )
 
     return render(request, "create_rule.html", {
-        "methods": methods
+        "methods": methods,
     })
 
 
@@ -210,31 +211,50 @@ def activate_rule(request):
     shop_domain = request.POST.get("shop_domain")
     shop = Shop.objects.filter(shop_domain=shop_domain).first()
 
-    keyword = request.POST.get("shipping_method")
+    rule_name = request.POST.get("rule_name")
+    shipping_method = request.POST.get("shipping_method")
+    payment_method = request.POST.get("payment_method")
     min_cart_value = request.POST.get("min_cart_value")
     region = request.POST.get("region")
     condition_type = request.POST.get("condition_type")
     rule_type = request.POST.get("rule_type")
 
-    # create once
-    
-    delivery_id = create_delivery_customization(
-        shop.shop_domain,
-        shop.access_token
-    )
-    
-    save_shipping_config(
-        shop.shop_domain,
-        shop.access_token,
-        delivery_id,
-        keyword,
-        min_cart_value,
-        region,
-        condition_type
-    )
+    if rule_type == "hide_payment":
+        payment_id = create_payment_customization(
+            shop.shop_domain,
+            shop.access_token,
+            rule_name
+        )
 
+        save_payment_config(
+            shop.shop_domain,
+            shop.access_token,
+            payment_id,
+            payment_method,
+            min_cart_value,
+            region,
+            condition_type
+        )
 
-    print("Activated, Shipping Method:", keyword)
+        print("Activated, Payment Method:", payment_method)
+
+    if rule_type == "hide_shipping":
+        delivery_id = create_delivery_customization(
+            shop.shop_domain,
+            shop.access_token
+        )
+        
+        save_shipping_config(
+            shop.shop_domain,
+            shop.access_token,
+            delivery_id,
+            shipping_method,
+            min_cart_value,
+            region,
+            condition_type
+        )
+
+        print("Activated, Shipping Method:", shipping_method)
 
     return redirect(f"/shopify/app/?shop={shop.shop_domain}")
 
