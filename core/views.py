@@ -88,10 +88,16 @@ def app_home(request):
     shop = Shop.objects.filter(shop_domain=shop_domain).first()
     rules = Rule.objects.filter(shop=shop) if shop else []
 
+    upgrade = False
+
+    if shop.plan == "Free" and rules.count() >= 1:
+        upgrade = True
+
     response = render(request, "app_home.html", {
         "shop": shop,
         "rules": rules,
         "host": host,
+        "upgrade":upgrade,
     })
 
     response["Content-Security-Policy"] = "frame-ancestors https://admin.shopify.com https://*.myshopify.com;"

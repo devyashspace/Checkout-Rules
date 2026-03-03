@@ -8,14 +8,14 @@ class Shop(models.Model):
     installed_at = models.DateTimeField(auto_now_add=True)
 
     PLAN_CHOICES = [
-        ("free", "Free"),
-        ("pro", "Pro"),
+        ("Free", "Free"),
+        ("Pro", "Pro"),
     ]
 
     plan = models.CharField(
         max_length=10,
         choices=PLAN_CHOICES,
-        default="free"
+        default="Free"
     )
 
     def __str__(self):
