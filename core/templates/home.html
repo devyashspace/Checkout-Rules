@@ -4,170 +4,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet">
+    <title>Create Rule</title>
+    <link rel="stylesheet" href="Css/style2.css">
+    <script src="{% static 'js/create-rule.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'css/create-rule.css' %}">
 </head>
 
 <body>
-    <div class="navbar">
-        <div class="navbar-section-left">
-            <img src="Img/WebLogoOeme.png" alt="">
-            <h1 class="oswald">Checkout Rules</h1>
-        </div>
-        <div class="navbar-section-right">
-            <h1 class="oswald">{{ shop.plan }} Plan</h1>
-        </div>
-    </div>
-
-
     <div class="container">
-        <div class="creative">
-            <div class="creative-section-left">
-                <img src="Img/MainBanner.png" alt="">
-            </div>
-            <div class="creative-section-right">
-                <div class="creative-btn-grp">
-                    <a href="{% url 'create_rule' %}?shop={{ shop.shop_domain }}"><button>Create Rule</button></a>
-                    <a href="/shopify/upgrade/?shop={{ shop.shop_domain }}"><button>Upgrade to pro</button></a>
+        <div class="mid-card">
+            <div class="btn-grp">
+                <div class="btn-grp-left">
+                    <img src="{% static 'img/back.png' %}" alt="">
                 </div>
-                <div class="creative-msg-grp">
-                    <h1>Pro plan gives you unlimited rule creation in just 2$/Month</h1>
+                <div class="btn-grp-right">
+                    <button id="prevBtn" onclick="prevSlide()">Previous</button>
+                    <button id="nextBtn" onclick="nextSlide()">Next</button>
                 </div>
             </div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="slider">
+                    <div class="slides" id="slides">
+                        <div class="slide">
+                            <div class="slide-main-hd">
+                                <h1>Select what you want to hide</h1>
+                            </div>
+                            <div class="option-box-card">
+
+                                <input type="radio" name="rule_type" id="shipping" value="hide_shipping">
+                                <label for="shipping" class="option-box">
+                                    <div class="option-box-cnt">
+                                        <img src="{% static 'img/delivery.png' %}">
+                                        <p>Shipping options</p>
+                                    </div>
+                                </label>
+
+                                <input type="radio" name="rule_type" id="payment" value="hide_payment">
+                                <label for="payment" class="option-box">
+                                    <div class="option-box-cnt">
+                                        <img src="{% static 'img/payment.png' %}">
+                                        <p>Payment options</p>
+                                    </div>
+                                </label>
+
+                                <input type="radio" name="rule_type" id="cod" value="hide_cod">
+                                <label for="cod" class="option-box">
+                                    <div class="option-box-cnt">
+                                        <img src="{% static 'img/cod.png' %}">
+                                        <p>Cod options</p>
+                                    </div>
+                                </label>
+
+                            </div>
+                        </div>
+
+                        <div class="slide">
+                            <div class="slide-main-hd">
+                                <h1>Name your rule</h1>
+                            </div>
+                            <div class="option-input-card">
+                                <div class="input-wrapper">
+                                    <input id="ruleInput" type="text" name="name" placeholder="Enter rule name here"
+                                        maxlength="50">
+                                    <span id="charCount">50</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slide">
+                            <div class="slide-main-hd">
+                                <h1>Set conditions for rule</h1>
+                            </div>
+
+                            <div class="option-input-grp">
+                                <div class="option-input-set">
+                                    <div class="option-input-set-hd">
+                                        <h1>Hide</h1>
+                                    </div>
+                                    <div class="option-input-set-fields">
+                                        <select name="shipping_method">
+                                            {% for m in methods %}
+                                            <option value="{{ m }}">{{ m }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <input type="text" name="payment_method" placeholder="Enter your payment method"
+                                            id="" style="display:none;">
+                                    </div>
+                                    <div class="option-input-set-notice">
+                                        <p>Type exact method on your checkout</p>
+                                    </div>
+                                </div>
+
+                                <br>
+                                <br>
+
+                                <div class="option-input-set">
+                                    <div class="option-input-set-hd">
+                                        <h1>When</h1>
+                                    </div>
+                                    <div class="option-input-set-fields">
+                                        <select name="condition_type">
+                                            <option value="IN">All of the following (And)</option>
+                                            <option value="US">Any of the following (Or)</option>
+                                        </select>
+                                    </div>
+                                    <div class="option-input-set-notice">
+                                        <p>Select the operator</p>
+                                    </div>
+                                </div>
+
+                                <br>
+                                <br>
+
+                                <div class="option-input-set">
+                                    <div class="option-input-set-hd">
+                                        <h1>Condition meet</h1>
+                                    </div>
+                                    <div class="option-input-set-fields">
+                                        <div class="input-grp grid-two">
+                                            <input type="number" step="0.01" name="min_cart_value"
+                                                placeholder="Min cart value">
+                                            <select name="region">
+                                                <option value="">All Regions</option>
+                                                <option value="IN">India</option>
+                                                <option value="US">United States</option>
+                                                <option value="CA">Canada</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="option-input-set-notice">
+                                        <p>Select the condition to apply</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slide">
+                            <div class="overview-channel flex-center">
+                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Mollitia animi cum ratione
+                                    earum facilis fugiat.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
-
-        <h2>Rule List</h2>
-
-        {% if rules %}
-        <div class="list">
-            <div class="rule-section">
-                {% for rule in rules %}
-                <div class="rule-card">
-                    <div class="rule-name">
-                        <h1>{{ rule.name }}</h1>
-                        {% if rule.is_active == true %}
-                        <p class="deactive">Inactive</p>
-                        {% else %}
-                        <p class="active">Active</p>
-                        {% endif %}
-                    </div>
-
-                    <div class="rule-details">
-                        <h2>ID 2026RWTR01</h2>
-                        <h2>{{ rule.created_at }}</h2>
-                        <br>
-                        <br>
-
-                        <h2 style="font-weight: bolder;">This payment rule</h2>
-
-                        <h3>Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores modi corporis totam
-                            placeat {{ rule.shipping_method_name }}
-                            nobis ab quidem obcaecati similique ipsa maiores.</h3>
-                    </div>
-
-                    <br>
-                    <br>
-
-                    <form class="rule-actions" method="POST" action="/shopify/activate_rule/">
-                        {% csrf_token %}
-                        <input type="hidden" name="shop_domain" value="{{ shop.shop_domain }}">
-                        <input type="hidden" name="rule_name" value="{{ rule.name }}">
-                        <input type="hidden" name="shipping_method" value="{{ rule.shipping_method_name }}">
-                        <input type="hidden" name="payment_method" value="{{ rule.payment_method_name }}">
-                        <input type="hidden" name="condition_type" value="{{ rule.condition_type }}">
-                        <input type="hidden" name="min_cart_value" value="{{ rule.min_cart_value }}">
-                        <input type="hidden" name="region" value="{{ rule.region }}">
-                        <input type="hidden" name="rule_type" value="{{ rule.rule_type }}">
-                        <button type="submit" class="activate">Activate</button>
-                        <button class="delete">Delete</button>
-                    </form>
-                </div>
-                {% endfor %}
-
-                <div class="rule-card">
-                    <div class="rule-name">
-                        <h1>Email Validation</h1>
-                        <p class="active">Active</p>
-                    </div>
-
-                    <div class="rule-details">
-                        <h2>ID 2026RWTR01</h2>
-                        <h2>02 Mar 2026</h2>
-                        <br>
-                        <br>
-
-                        <h2 style="font-weight: bolder;">This payment rule</h2>
-
-                        <h3>Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores modi corporis totam
-                            placeat
-                            nobis ab quidem obcaecati similique ipsa maiores.</h3>
-                    </div>
-
-                    <br>
-                    <br>
-
-                    <div class="rule-actions">
-                        <button class="deactivate">Deactivate</button>
-                        <button class="delete">Delete</button>
-                    </div>
-                </div>
-
-                <div class="rule-card">
-                    <div class="rule-name">
-                        <h1>Email Validation</h1>
-                        <p class="deactive">Inactive</p>
-                    </div>
-
-                    <div class="rule-details">
-                        <h2>ID 2026RWTR01</h2>
-                        <h2>02 Mar 2026</h2>
-                        <br>
-                        <br>
-
-                        <h2 style="font-weight: bolder;">This payment rule</h2>
-
-                        <h3>Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores modi corporis totam
-                            placeat
-                            nobis ab quidem obcaecati similique ipsa maiores.</h3>
-                    </div>
-
-                    <br>
-                    <br>
-
-                    <div class="rule-actions">
-                        <button class="activate">Activate</button>
-                        <button class="delete">Delete</button>
-                    </div>
-                </div>
-
-                <div class="rule-card-plus">
-                    +
-                </div>
-            </div>
-        </div>
-        {% else %}
-        <div class="list">
-            <div class="no-rule">
-                <div class="no-rule-section">
-                    <img src="Img/no-order.png" alt="">
-                    <br>
-                    You have no rule listed<a href="">Create Rule</a>
-                </div>
-            </div>
-        </div>
-        {% endif %}
     </div>
 
-
-    <div class="footer">
-        <a href="">Privacy Policy</a>
-    </div>
-    <script>
-
-    </script>
 </body>
 
 </html>

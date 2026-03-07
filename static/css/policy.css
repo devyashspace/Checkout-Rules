@@ -1,0 +1,58 @@
+*{
+    margin: 0px;
+    padding: 0px;
+}
+
+body{
+    background-color: #f1f1f1;
+}
+
+.container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.mid-card {
+    padding: 15px 15px 80px 15px;
+    background-color: rgb(229, 229, 229);
+    width: 70%;
+    border-radius: 15px;
+}
+
+.btn-grp {
+    padding: 10px 20px;
+    display: flex;
+    font-size: 16px;
+}
+
+.btn-grp-left {
+    margin-right: auto;
+    width: max-content;
+}
+
+.btn-grp-left img {
+    height: 25px;
+    cursor: pointer;
+}
+
+.main-hd{
+    margin-top: 10px;
+}
+
+.main-hd h1{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 17px;
+    font-weight: normal;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.main-content p{
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    font-size: 13px;
+}

@@ -104,11 +104,13 @@ body{
 
 .primary-btn{
     background-color: white;
+    cursor: pointer;
 }
 
 .secondary-btn {
     background-color: black;
     color: white;
+    cursor: pointer;
 }
 
 .disabled-btn{
@@ -120,11 +122,13 @@ body{
     background-color: black;
     color: white;
     transition: 0.5s;
+    cursor: pointer;
 }
 
 .secondary-btn:hover {
     background: linear-gradient(to right, rgb(255, 58, 58), orange);
     transition: 1s;
+    cursor: pointer;
 }
 
 .creative-msg-grp {
@@ -303,6 +307,11 @@ background: linear-gradient(350deg, #9f9f9f 63%, #fc9444dc, rgba(255, 43, 43, 0.
     font-weight: normal;
 }
 
+.rule-actions{
+    display: flex;
+    gap: 10px;
+}
+
 .rule-actions button{
     padding: 10px;
     border-radius: 100px;
@@ -312,15 +321,30 @@ background: linear-gradient(350deg, #9f9f9f 63%, #fc9444dc, rgba(255, 43, 43, 0.
 .activate{
     background-color: white;
     color: black;
+    cursor: pointer;
+}
+
+.activate:hover{
+    background-color: rgb(174, 174, 174);
 }
 
 .deactivate{
     background-color: black;
     color: white;
+    cursor: pointer;
+}
+
+.deactivate:hover{
+    background-color: #303030;
 }
 
 .delete{
     background-color: #b92332;
     color: white;
+    cursor: pointer;
+}
+
+.delete:hover{
+    background-color: #c9525e;
 }
 

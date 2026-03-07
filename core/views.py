@@ -8,7 +8,7 @@ import requests
 from django.conf import settings
 from .models import Shop, Rule
 from django.shortcuts import render
-from .shopify_utils import create_delivery_customization, save_shipping_config, get_shipping_methods, create_payment_customization, save_payment_config
+from .shopify_utils import create_delivery_customization, save_shipping_config, get_shipping_methods, create_payment_customization, save_payment_config, generate_id, delete_delivery_customization, delete_payment_customization, deactivate_delivery_customization, deactivate_payment_customization
 
 
 #https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/install/?shop=teststoreone-3413.myshopify.com
@@ -89,6 +89,7 @@ def app_home(request):
     rules = Rule.objects.filter(shop=shop) if shop else []
 
     upgrade = False
+    rule_count = rules.count()
 
     if shop.plan == "Free" and rules.count() >= 1:
         upgrade = True
@@ -98,6 +99,7 @@ def app_home(request):
         "rules": rules,
         "host": host,
         "upgrade":upgrade,
+        "rule_count":rule_count,
     })
 
     response["Content-Security-Policy"] = "frame-ancestors https://admin.shopify.com https://*.myshopify.com;"
@@ -108,6 +110,7 @@ def app_home(request):
 def create_rule(request):
     shop_domain = request.GET.get("shop")
     shop = Shop.objects.filter(shop_domain=shop_domain).first()
+    random_id = generate_id()
 
     # 🚨 LIMIT LOGIC
     if shop.plan == "free" and shop.rules.count() >= 1:
@@ -119,17 +122,22 @@ def create_rule(request):
                 <button>Upgrade to Pro ($12/month)</button>
             </a>
         """)
+    
+    
 
     if request.method == "POST":
         Rule.objects.create(
             shop=shop,
             name=request.POST.get("name"),
             rule_type=request.POST.get("rule_type"),
+            summary=request.POST.get("summary"), 
             min_cart_value=request.POST.get("min_cart_value") or None,
             shipping_method_name=request.POST.get("shipping_method") or None,
             payment_method_name=request.POST.get("payment_method") or None,
             region=request.POST.get("region"),
             condition_type=request.POST.get("condition_type") or "and",
+            rule_id=random_id,
+            is_active = False,
         )
 
         return redirect(f"/shopify/app/?shop={shop.shop_domain}")
@@ -214,54 +222,119 @@ def billing_callback(request):
 
 
 def activate_rule(request):
-    shop_domain = request.POST.get("shop_domain")
-    shop = Shop.objects.filter(shop_domain=shop_domain).first()
 
-    rule_name = request.POST.get("rule_name")
-    shipping_method = request.POST.get("shipping_method")
-    payment_method = request.POST.get("payment_method")
-    min_cart_value = request.POST.get("min_cart_value")
-    region = request.POST.get("region")
-    condition_type = request.POST.get("condition_type")
-    rule_type = request.POST.get("rule_type")
+    rule_id = request.POST.get("rule_id")
+    rule = Rule.objects.get(id=rule_id)
+    shop = rule.shop
 
-    if rule_type == "hide_payment":
+    if rule.rule_type == "hide_payment":
+
         payment_id = create_payment_customization(
             shop.shop_domain,
             shop.access_token,
-            rule_name
+            rule.name
         )
 
         save_payment_config(
             shop.shop_domain,
             shop.access_token,
             payment_id,
-            payment_method,
-            min_cart_value,
-            region,
-            condition_type
+            rule.payment_method_name,
+            rule.min_cart_value,
+            rule.region,
+            rule.condition_type
         )
 
-        print("Activated, Payment Method:", payment_method)
+        rule.shopify_payment_id = payment_id
+        rule.is_active = True
+        rule.save()
 
-    if rule_type == "hide_shipping":
+
+    elif rule.rule_type == "hide_shipping":
+
         delivery_id = create_delivery_customization(
             shop.shop_domain,
             shop.access_token
         )
-        
+
         save_shipping_config(
             shop.shop_domain,
             shop.access_token,
             delivery_id,
-            shipping_method,
-            min_cart_value,
-            region,
-            condition_type
+            rule.shipping_method_name,
+            rule.min_cart_value,
+            rule.region,
+            rule.condition_type
         )
 
-        print("Activated, Shipping Method:", shipping_method)
+        rule.shopify_delivery_id = delivery_id
+        rule.is_active = True
+        rule.save()
 
     return redirect(f"/shopify/app/?shop={shop.shop_domain}")
 
 
+def privacy_policy(request):
+    return render(request, "privacy_policy.html")
+
+
+def data_deletion_policy(request):
+    return render(request, "data_deletion_policy.html")
+
+
+def delete_rule(request):
+
+    rule_id = request.POST.get("rule_id")
+    rule = Rule.objects.get(id=rule_id)
+    shop = rule.shop
+
+    if rule.rule_type == "hide_payment" and rule.shopify_payment_id:
+
+        delete_payment_customization(
+            shop.shop_domain,
+            shop.access_token,
+            rule.shopify_payment_id
+        )
+
+    if rule.rule_type == "hide_shipping" and rule.shopify_delivery_id:
+
+        delete_delivery_customization(
+            shop.shop_domain,
+            shop.access_token,
+            rule.shopify_delivery_id
+        )
+
+    rule.delete()
+
+    return redirect(f"/shopify/app/?shop={shop.shop_domain}")
+
+
+def deactivate_rule(request):
+
+    rule_id = request.POST.get("rule_id")
+
+    rule = Rule.objects.get(id=rule_id)
+    shop = rule.shop
+
+    # deactivate payment rule
+    if rule.rule_type == "hide_payment" and rule.shopify_payment_id:
+
+        deactivate_payment_customization(
+            shop.shop_domain,
+            shop.access_token,
+            rule.shopify_payment_id
+        )
+
+    # deactivate shipping rule
+    elif rule.rule_type == "hide_shipping" and rule.shopify_delivery_id:
+
+        deactivate_delivery_customization(
+            shop.shop_domain,
+            shop.access_token,
+            rule.shopify_delivery_id
+        )
+
+    rule.is_active = False
+    rule.save()
+
+    return redirect(f"/shopify/app/?shop={shop.shop_domain}")

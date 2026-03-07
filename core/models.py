@@ -24,16 +24,16 @@ class Shop(models.Model):
 
 class Rule(models.Model):
     RULE_TYPE_CHOICES = [
-        ("disable_cod_min_cart", "Disable COD below cart value"),
-        ("disable_cod_region", "Disable COD for region"),
-        ("add_cod_fee", "Add COD fee"),
         ("hide_shipping", "Hide shipping method"),
         ("hide_payment", "Hide payment method"),
     ]
 
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="rules")
     name = models.CharField(max_length=100)
+    rule_id = models.CharField(max_length=100, null=True)
     rule_type = models.CharField(max_length=50, choices=RULE_TYPE_CHOICES)
+    shopify_delivery_id = models.CharField(max_length=255, null=True, blank=True)
+    shopify_payment_id = models.CharField(max_length=255, null=True, blank=True)
 
     # Generic fields to keep MVP simple
     min_cart_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -42,6 +42,7 @@ class Rule(models.Model):
     cod_fee_is_percent = models.BooleanField(default=False)
     shipping_method_name = models.CharField(max_length=100, null=True, blank=True)
     payment_method_name = models.CharField(max_length=100, null=True, blank=True)
+    summary = models.CharField(max_length=500, null=True, blank=True)
 
     CONDITION_TYPE_CHOICES = [
         ("and", "All conditions must match (AND)"),
