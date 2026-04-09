@@ -30,12 +30,13 @@ SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ['*']                                                                       
+ALLOWED_HOSTS = [
+    "checkout-rules.onrender.com",
+]                                                                      
                                                                               
-CSRF_TRUSTED_ORIGINS = [                                                   
-    "https://gonadial-ninfa-nonanimated.ngrok-free.dev",
-    "https://*.onrender.com",                   
-]   
+CSRF_TRUSTED_ORIGINS = [
+    "https://checkout-rules.onrender.com",
+]  
 
 # Application definition
 

@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .shopify_utils import create_delivery_customization, save_shipping_config, get_shipping_methods, create_payment_customization, save_payment_config, generate_id, delete_delivery_customization, delete_payment_customization, deactivate_delivery_customization, deactivate_payment_customization
 
 
+#https://checkout-rules.onrender.com/shopify/install/?shop=teststoreone-3413.myshopify.com
 #https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/install/?shop=teststoreone-3413.myshopify.com
 #http://127.0.0.1:8000/shopify/install/?shop=smart-shipping-test-2.myshopify.com
 #http://127.0.0.1:8000/shopify/install/?shop=test-store-292292.myshopify.com
@@ -29,7 +30,7 @@ def install(request):
     params = {
         "client_id": SHOPIFY_API_KEY,
         "scope": "write_delivery_customizations,write_payment_customizations,read_checkouts,write_checkouts",
-        "redirect_uri": "https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/callback/",
+        "redirect_uri": "https://checkout-rules.onrender.com/shopify/callback/",
     }
 
     auth_url = f"https://{shop}/admin/oauth/authorize?{urlencode(params)}"
@@ -75,7 +76,7 @@ def callback(request):
     )
 
     # 🔥 4. REGISTER WEBHOOK HERE
-    webhook_url = "https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/webhooks/app-uninstalled/"
+    webhook_url = "https://checkout-rules.onrender.com/shopify/webhooks/app-uninstalled/"
 
     webhook_data = {
         "webhook": {
@@ -188,7 +189,7 @@ def upgrade(request):
         "Content-Type": "application/json",
     }
 
-    return_url = f"https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/billing/callback/?shop={shop_domain}"
+    return_url = f"https://checkout-rules.onrender.com/shopify/billing/callback/?shop={shop_domain}"
 
     data = {
         "recurring_application_charge": {
