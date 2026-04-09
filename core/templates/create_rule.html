@@ -7,8 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Rule</title>
     <link rel="stylesheet" href="Css/style2.css">
-    <script src="{% static 'js/create-rule.js' %}" defer></script>
-    <link rel="stylesheet" href="{% static 'css/create-rule.css' %}">
+    <script src="{% static 'js/create-rule.js' %}?v=4" defer></script>
+    <link rel="stylesheet" href="{% static 'css/style/create-rule.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/responsive/create-rule.css' %}?v=3">
 </head>
 
 <body>
@@ -23,6 +24,9 @@
                     <div class="btn-grp-right">
                         <button id="prevBtn" type="button" onclick="prevSlide()">Previous</button>
                         <button id="nextBtn" type="button" onclick="nextSlide()">Next</button>
+                    </div>
+                    <div class="slide-count" id="slideCount">
+                        1/4
                     </div>
                 </div>
                 <div class="slider">
@@ -69,8 +73,8 @@
                             <div class="option-input-card">
                                 <div class="input-wrapper">
                                     <input id="ruleInput" type="text" name="name" placeholder="Enter rule name here"
-                                        maxlength="50">
-                                    <span id="charCount">50</span>
+                                        maxlength="15">
+                                    <div id="charCount">15</div>
                                 </div>
                             </div>
                         </div>

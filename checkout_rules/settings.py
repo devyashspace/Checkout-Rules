@@ -25,19 +25,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z(!2*mb@#7%z@j7igr3u*(k2e=5-8)#_#icf1j3=tezx&4_8xh'
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = [                                                          
-    "127.0.0.1",                                                           
-    "localhost",                                                           
-    "gonadial-ninfa-nonanimated.ngrok-free.dev",                           
-]                                                                          
+ALLOWED_HOSTS = ['*']                                                                       
                                                                               
 CSRF_TRUSTED_ORIGINS = [                                                   
-    "https://gonadial-ninfa-nonanimated.ngrok-free.dev",                   
+    "https://gonadial-ninfa-nonanimated.ngrok-free.dev",
+    "https://*.onrender.com",                   
 ]   
 
 # Application definition
@@ -54,6 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -85,11 +83,10 @@ WSGI_APPLICATION = 'checkout_rules.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(default='sqlite:///db.sqlite3')
 }
 
 
@@ -129,6 +126,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CSRF_COOKIE_SAMESITE = "None"                                              
 CSRF_COOKIE_SECURE = True                                                  

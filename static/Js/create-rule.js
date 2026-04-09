@@ -2,6 +2,8 @@ let index = 0;
 const slides = document.getElementById("slides");
 const totalSlides = 4;
 
+const slideCount = document.getElementById("slideCount");
+
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 
@@ -14,14 +16,15 @@ function updateSlide() {
 
     slides.style.transform = "translateX(" + (-index * 100) + "%)";
 
-    // Hide previous on first slide
+    // ✅ ADD THIS LINE
+    slideCount.textContent = (index + 1) + "/" + totalSlides;
+
     if (index === 0) {
         prevBtn.style.display = "none";
     } else {
         prevBtn.style.display = "inline-block";
     }
 
-    // Change Next → Save on last slide
     if (index === totalSlides - 1) {
         nextBtn.textContent = "Save";
         nextBtn.classList.add("save-btn");
@@ -30,12 +33,10 @@ function updateSlide() {
         nextBtn.classList.remove("save-btn");
     }
 
-    // Update rule fields when entering conditions slide
     if (index === 2) {
         updateRuleFields();
     }
 
-    // Update summary when entering final slide
     if (index === 3) {
         updateSummary();
     }
@@ -215,7 +216,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // CHARACTER COUNTER
 const input = document.getElementById("ruleInput");
 const charCount = document.getElementById("charCount");
-const maxChars = 50;
+const maxChars = 15;
 
 if (input) {
 

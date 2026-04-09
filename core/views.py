@@ -5,9 +5,11 @@ from urllib.parse import urlencode
 import hashlib
 import hmac
 import requests
+import base64
 from django.conf import settings
 from .models import Shop, Rule
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from .shopify_utils import create_delivery_customization, save_shipping_config, get_shipping_methods, create_payment_customization, save_payment_config, generate_id, delete_delivery_customization, delete_payment_customization, deactivate_delivery_customization, deactivate_payment_customization
 
 
@@ -37,6 +39,8 @@ def install(request):
 def callback(request):
     params = request.GET.dict()
     hmac_received = params.pop("hmac", None)
+    shop = params.get("shop")
+    store_name = shop.replace(".myshopify.com", "")
 
     # 1. Verify HMAC
     message = "&".join(f"{k}={v}" for k, v in sorted(params.items()))
@@ -70,15 +74,31 @@ def callback(request):
         defaults={"access_token": access_token, "is_active": True},
     )
 
-    
+    # 🔥 4. REGISTER WEBHOOK HERE
+    webhook_url = "https://gonadial-ninfa-nonanimated.ngrok-free.dev/shopify/webhooks/app-uninstalled/"
 
-    
+    webhook_data = {
+        "webhook": {
+            "topic": "app/uninstalled",
+            "address": webhook_url,
+            "format": "json"
+        }
+    }
 
-    
+    webhook_response = requests.post(
+        f"https://{shop}/admin/api/2024-01/webhooks.json",
+        json=webhook_data,
+        headers={
+            "X-Shopify-Access-Token": access_token,
+            "Content-Type": "application/json",
+        }
+    )
+
+    print("WEBHOOK RESPONSE:", webhook_response.json())
 
     host = request.GET.get("host")
 
-    return redirect(f"/shopify/app/?shop={shop}&host={host}")
+    return redirect(f"https://admin.shopify.com/store/{store_name}/apps/oeme-checkout-rules")
 
 
 def app_home(request):
@@ -86,6 +106,10 @@ def app_home(request):
     host = request.GET.get("host")
 
     shop = Shop.objects.filter(shop_domain=shop_domain).first()
+    
+    if not shop or shop.is_active == False:
+        return redirect(f"/shopify/install/?shop={shop_domain}")
+    
     rules = Rule.objects.filter(shop=shop) if shop else []
 
     upgrade = False
@@ -188,15 +212,13 @@ def upgrade(request):
     # ✅ ADD THIS LINE
     confirmation_url = charge.get("confirmation_url")
 
-    return render(request, "billing_redirect.html", {
-        "confirmation_url": confirmation_url,
-        "shop": shop_domain
-    })
+    return redirect(confirmation_url)
 
 
 def billing_callback(request):
     shop_domain = request.GET.get("shop")
     charge_id = request.GET.get("charge_id")
+    store_name = shop_domain.replace(".myshopify.com", "")
 
     shop = Shop.objects.get(shop_domain=shop_domain)
 
@@ -214,11 +236,11 @@ def billing_callback(request):
     charge = data["recurring_application_charge"]
 
     if charge and charge["status"] == "active":
-        shop.plan = "pro"
+        shop.plan = "Pro"
         shop.save()   
         print("PLAN ACTIVATED & SAVED")
 
-    return redirect(f"/shopify/app/?shop={shop_domain}")
+    return redirect(f"https://admin.shopify.com/store/{store_name}/apps/oeme-checkout-rules")
 
 
 def activate_rule(request):
@@ -338,3 +360,46 @@ def deactivate_rule(request):
     rule.save()
 
     return redirect(f"/shopify/app/?shop={shop.shop_domain}")
+
+
+def verify_webhook(request):
+    hmac_header = request.headers.get("X-Shopify-Hmac-Sha256")
+
+    digest = hmac.new(
+        SHOPIFY_API_SECRET.encode("utf-8"),
+        request.body,
+        hashlib.sha256
+    ).digest()
+
+    computed_hmac = base64.b64encode(digest).decode()
+
+    return hmac.compare_digest(computed_hmac, hmac_header)
+
+
+@csrf_exempt
+def app_uninstalled(request):
+    if request.method == "POST":
+
+        # 🔐 VERIFY FIRST
+        if not verify_webhook(request):
+            return HttpResponse("Invalid webhook", status=401)
+
+        import json
+        data = json.loads(request.body)
+
+        shop_domain = data.get("domain")
+
+        try:
+            shop = Shop.objects.get(shop_domain=shop_domain)
+            shop.is_active = False
+            shop.access_token = ""  # 🔥 important
+            shop.save()
+
+            print(f"{shop_domain} marked as inactive")
+
+        except Shop.DoesNotExist:
+            pass
+
+        return HttpResponse(status=200)
+
+    return HttpResponse(status=405)

@@ -1,0 +1,31 @@
+@media (max-width: 600px){
+    .container{
+        padding-top:0px;
+        padding-bottom: 0px;
+    }
+    
+    .mid-card{
+        width: 100%;
+        border-radius: 0px;
+    }
+
+    .main-hd {
+    margin-top: 0px;
+}
+
+.main-hd h1{
+    font-size: 15px;
+}
+
+.main-content p {
+    font-size: 11.5px;
+}
+
+.btn-grp-left img {
+    height: 17px;
+}
+
+.btn-grp {
+    padding: 0px;
+}
+}

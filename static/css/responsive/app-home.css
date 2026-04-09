@@ -1,0 +1,334 @@
+@media (max-width: 1100px) {
+    .navbar {
+        padding: 30px;
+    }
+
+    .navbar-section-left img {
+        height: 25px;
+        margin-right: 5px;
+    }
+
+    .navbar-section-left h1 {
+        font-size: 24px;
+    }
+
+    .navbar-section-right h1 {
+        font-size: 24px;
+    }
+
+    .nav-bottom h1 {
+        text-align: right;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        font-weight: normal;
+    }
+
+    .container {
+        width: 98%;
+    }
+
+    .creative {
+        margin-bottom: 10px;
+    }
+
+    .creative-section-left {
+        padding-left: 10px;
+    }
+
+    .creative-section-left img {
+        height: 31vw;
+    }
+
+    .creative-section-right {
+        padding-top: 50px;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .disabled-btn {
+        padding-top: 2vw;
+        padding-bottom: 2vw;
+        padding-left: 2.5vw;
+        padding-right: 2.5vw;
+        font-size: 1.3vw;
+        margin-right: 8px;
+    }
+
+    .creative-msg-grp {
+        padding-top: 15px;
+    }
+
+    .creative-msg-grp h1 {
+        font-size: 3vw;
+    }
+
+    .container h2 {
+        font-size: 2.2vw;
+    }
+
+    .rule-section {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
+
+    .list {
+        padding: 50px;
+    }
+
+    .no-rule-section img {
+        height: 12vw;
+    }
+
+    .rule-name h1 {
+        font-size: 1.5vw;
+    }
+
+    .rule-details h2 {
+        font-size: 1.3vw;
+    }
+
+    .rule-details h3 {
+        font-size: 1.3vw;
+    }
+
+    .rule-actions {
+        gap: 5px;
+    }
+
+    .rule-actions button {
+        padding: 1vw;
+        font-size: 1vw;
+    }
+}
+
+@media (max-width: 800px) {
+    .rule-section {
+        gap: 20px;
+    }
+
+    .list {
+        padding: 40px;
+    }
+
+    .no-rule-section {
+        font-size: 12px;
+    }
+
+    .no-rule-section img {
+        height: 50px;
+    }
+
+    .rule-card,
+    .rule-card-plus {
+        padding: 15px;
+    }
+
+    .rule-name h1 {
+        font-size: 2.2vw;
+    }
+
+    .rule-name p {
+        font-size: 2.2vw;
+    }
+
+    .rule-details h2 {
+        font-size: 1.7vw;
+    }
+
+    .rule-details h3 {
+        font-size: 1.7vw;
+    }
+
+    .rule-actions {
+        gap: 5px;
+    }
+
+    .rule-actions button {
+        padding: 1.5vw;
+        font-size: 1.5vw;
+    }
+}
+
+@media (max-width: 600px) {
+    .creative-section-right {
+        padding-top: 25px;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .disabled-btn {
+        padding-top: 3vw;
+        padding-bottom: 3vw;
+        padding-left: 3.3vw;
+        padding-right: 3.3vw;
+        font-size: 1.7vw;
+        margin-right: 8px;
+    }
+
+    .rule-section {
+        gap: 20px;
+    }
+
+    .list {
+        padding: 40px;
+    }
+
+    .no-rule-section {
+        font-size: 12px;
+    }
+
+    .no-rule-section img {
+        height: 50px;
+    }
+
+    .rule-card,
+    .rule-card-plus {
+        padding: 15px;
+    }
+
+    .rule-card-plus {
+        font-size: 10vw;
+    }
+
+    .rule-name h1 {
+        font-size: 2.4vw;
+    }
+
+    .rule-name p {
+        font-size: 2.4vw;
+    }
+
+    .rule-details h2 {
+        font-size: 1.9vw;
+    }
+
+    .rule-details h3 {
+        font-size: 1.9vw;
+    }
+
+    .rule-actions {
+        gap: 5px;
+    }
+
+    .rule-actions button {
+        padding: 2vw;
+        font-size: 2vw;
+        font-size: 2vw;
+    }
+}
+
+@media (max-width: 500px) {
+    .navbar {
+        padding: 10px;
+    }
+
+    .navbar-section-left img {
+        height: 15px;
+        margin-right: 3px;
+    }
+
+    .navbar-section-left h1 {
+        display: none;
+    }
+
+    .navbar-section-right h1 {
+        font-size: 15px;
+    }
+
+    .nav-bottom h1 {
+        font-size: 10px;
+    }
+
+    .container h2 {
+        font-size: 4.5vw;
+    }
+
+    .creative {
+        display: grid;
+        place-items: center;
+        margin-bottom: 40px;
+    }
+
+    .creative-section-left img {
+        height: 50vw;
+    }
+
+    .creative-btn-grp {
+        width: max-content;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .creative-msg-grp h1 {
+        font-size: 6vw;
+        text-align: center;
+        padding: 0 10px;
+    }
+
+    .creative-section-right {
+        padding-top: 5px;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .disabled-btn {
+        padding: 4vw 10vw;
+        font-size: 2.7vw;
+    }
+
+    .rule-section {
+        grid-template-columns: repeat(1, 1fr);
+        gap: 4px;
+    }
+
+    .list {
+        padding: 0px;
+        background-color: transparent;
+    }
+
+    .rule-card,
+    .rule-card-plus {
+        padding: 15px;
+        min-height: 200px;
+    }
+
+    .rule-card-plus {
+        font-size: 10vw;
+
+    }
+
+    .rule-name h1 {
+        font-size: 4.5vw;
+    }
+
+    .rule-details h2 {
+        font-size: 3.5vw;
+    }
+
+    .rule-details h3 {
+        font-size: 3.5vw;
+    }
+
+    .rule-name p {
+        font-size: 3.5vw;
+    }
+
+    .rule-actions button {
+        font-size: 2.5vw;
+        padding: 4vw 6vw 4vw 6vw;
+    }
+
+    .no-rule {
+        padding-top: 50px;
+        padding-bottom: 50px;
+        background-color: rgb(189, 189, 189);
+        border-radius: 15px;
+    }
+
+    .footer a {
+        font-size: 10px;
+    }
+}

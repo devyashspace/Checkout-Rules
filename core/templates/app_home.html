@@ -9,153 +9,195 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/app-home.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/style/app-home.css' %}?v=98">
+    <link rel="stylesheet" href="{% static 'css/responsive/app-home.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/components/mid-loader.css' %}">
+    <script src="{% static 'js/mid-loader.js' %}"></script>
 </head>
 
 <body>
-    <div class="navbar">
-        <div class="nav-top">
-            <div class="navbar-section-left">
-                <img src="{% static 'img/Logo.png' %}" alt="Logo">
-                <h1 class="oswald">Checkout Rules</h1>
+    <div class="main-content">
+        <div class="navbar">
+            <div class="nav-top">
+                <div class="navbar-section-left">
+                    <img src="{% static 'img/Logo.png' %}" alt="Logo">
+                    <h1 class="oswald">Checkout Rules</h1>
+                </div>
+                <div class="navbar-section-right">
+                    <h1 class="oswald">{{ shop.plan }} Plan</h1>
+                </div>
             </div>
-            <div class="navbar-section-right">
-                <h1 class="oswald">{{ shop.plan }} Plan</h1>
+
+            <div class="nav-bottom">
+                {% if shop.plan == "Pro" %}
+                <h1>Unlimited</h1>
+
+                {% elif shop.plan == "Free" and rule_count >= 1 %}
+                <h1>0 Credit left</h1>
+
+                {% elif shop.plan == "Free" and rule_count == 0 %}
+                <h1>1 Credit left</h1>
+                {% endif %}
             </div>
+
         </div>
 
-        <div class="nav-bottom">
-            {% if shop.plan == "Pro" %}
-            <h1>Unlimited</h1>
 
-            {% elif shop.plan == "Free" and rule_count >= 1 %}
-            <h1>0 Credit left</h1>
+        <div class="container">
+            <div class="creative">
+                <div class="creative-section-left">
+                    <img src="{% static 'img/Banner.png' %}" alt="">
+                </div>
+                <div class="creative-section-right">
+                    <div class="creative-btn-grp">
+                        {% if upgrade == True %}
+                        <button class="disabled-btn">Create Rule</button>
+                        {% else %}
+                        <a href="{% url 'create_rule' %}?shop={{ shop.shop_domain }}"><button class="primary-btn">Create
+                                Rule</button></a>
+                        {% endif %}
 
-            {% elif shop.plan == "Free" and rule_count == 0 %}
-            <h1>1 Credit left</h1>
+                        {% if shop.plan == "Free" %}
+                        <button class="secondary-btn" onclick="startUpgrade()">
+                            Upgrade to Pro
+                        </button>
+                        {% else %}
+                        <button class="disabled-btn">Upgrade to Pro</button>
+                        {% endif %}
+                    </div>
+                    <div class="creative-msg-grp">
+                        {% if shop.plan == "Free" %}
+                        <h1>Pro plan gives you unlimited rule creation for just $2 per month.</h1>
+                        {% else %}
+                        <h1>Now you are on the <strong> Pro plan</strong>, enjoy unlimited rule creation!</h1>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <h2>Rule List</h2>
+
+            {% if rules %}
+            <div class="list">
+                <div class="rule-section">
+                    {% for rule in rules %}
+                    <div class="rule-card">
+                        <div class="rule-name">
+                            <h1>{{ rule.name }}</h1>
+                            {% if rule.is_active == True %}
+                            <p class="active">Active</p>
+                            {% else %}
+                            <p class="deactive">Inactive</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="rule-details">
+                            <h2>ID {{ rule.rule_id }}</h2>
+                            <h2>{{ rule.created_at }}</h2>
+                            <br>
+                            <br>
+
+                            {% if rule.rule_type == "hide_payment" %}
+                            <h2 style="font-weight: bolder;">Hide Payment</h2>
+                            {% else %}
+                            <h2 style="font-weight: bolder;">Hide Shipment</h2>
+                            {% endif %}
+
+                            <h3>{{ rule.summary }}</h3>
+                        </div>
+
+                        <br>
+                        <br>
+
+                        <div class="rule-actions">
+
+                            <!-- ACTIVATE / DEACTIVATE -->
+                            {% if rule.is_active %}
+                            <form method="POST" action="/shopify/deactivate_rule/">
+                                {% csrf_token %}
+                                <input type="hidden" name="rule_id" value="{{ rule.id }}">
+                                <button type="submit" class="deactivate">Deactivate</button>
+                            </form>
+                            {% else %}
+                            <form method="POST" action="/shopify/activate_rule/">
+                                {% csrf_token %}
+                                <input type="hidden" name="rule_id" value="{{ rule.id }}">
+                                <button type="submit" class="activate">Activate</button>
+                            </form>
+                            {% endif %}
+
+                            <!-- DELETE -->
+                            <form method="POST" action="/shopify/delete_rule/">
+                                {% csrf_token %}
+                                <input type="hidden" name="rule_id" value="{{ rule.id }}">
+                                <button type="submit" class="delete">Delete</button>
+                            </form>
+
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    {% if shop.plan == "Pro" %}
+                    <a href="{% url 'create_rule' %}?shop={{ shop.shop_domain }}" style="text-decoration: none;">
+                        <div class="rule-card-plus">
+                            +
+                        </div>
+                    </a>
+                    {% else %}
+
+                    <div class="rule-card-plus"
+                        style="background: grey; color: rgb(167, 167, 167); cursor:not-allowed;">
+                        +
+                    </div>
+
+                    {% endif %}
+
+                </div>
+            </div>
+            {% else %}
+            <div class="list">
+                <div class="no-rule">
+                    <div class="no-rule-section">
+                        <img src="{% static 'img/empty-folder.png' %}" alt="">
+                        <br>
+                        You have no rule listed<a href="{% url 'create_rule' %}?shop={{ shop.shop_domain }}">Create
+                            Rule</a>
+                    </div>
+                </div>
+            </div>
             {% endif %}
         </div>
 
+
+        <div class="footer">
+            <a href="{% url 'privacy_policy' %}?shop={{ shop.shop_domain }}">Privacy Policy</a>
+            <a style="margin-left: 30px;" href="{% url 'data_deletion_policy' %}?shop={{ shop.shop_domain }}">Data
+                Deletion
+                Policy</a>
+        </div>
     </div>
 
-
-    <div class="container">
-        <div class="creative">
-            <div class="creative-section-left">
-                <img src="{% static 'img/Banner.png' %}" alt="">
-            </div>
-            <div class="creative-section-right">
-                <div class="creative-btn-grp">
-                    {% if upgrade == True %}
-                    <button class="disabled-btn">Create Rule</button>
-                    {% else %}
-                    <a href="{% url 'create_rule' %}?shop={{ shop.shop_domain }}"><button class="primary-btn">Create
-                            Rule</button></a>
-                    {% endif %}
-
-                    {% if shop.plan == "Free" %}
-                    <a href="/shopify/upgrade/?shop={{ shop.shop_domain }}"><button class="secondary-btn">Upgrade to
-                            pro</button></a>
-                    {% else %}
-                    <button class="disabled-btn">Upgrade to pro</button>
-                    {% endif %}
-                </div>
-                <div class="creative-msg-grp">
-                    <h1>Pro plan gives you unlimited rule creation in just 2$/Month</h1>
-                </div>
+    <div class="mid-loader-container">
+        <div class="loader-box">
+            <div class="skeleton-wrap">
+                <div class="skel-circle"></div>
+                <div class="skel-line"></div>
+                <div class="skel-line"></div>
+                <div class="skel-line"></div>
             </div>
         </div>
-
-        <h2>Rule List</h2>
-
-        {% if rules %}
-        <div class="list">
-            <div class="rule-section">
-                {% for rule in rules %}
-                <div class="rule-card">
-                    <div class="rule-name">
-                        <h1>{{ rule.name }}</h1>
-                        {% if rule.is_active == true %}
-                        <p class="deactive">Inactive</p>
-                        {% else %}
-                        <p class="active">Active</p>
-                        {% endif %}
-                    </div>
-
-                    <div class="rule-details">
-                        <h2>ID {{ rule.rule_id }}</h2>
-                        <h2>{{ rule.created_at }}</h2>
-                        <br>
-                        <br>
-
-                        {% if rule.rule_type == "hide_payment" %}
-                        <h2 style="font-weight: bolder;">Hide Payment</h2>
-                        {% else %}
-                        <h2 style="font-weight: bolder;">Hide Shipment</h2>
-                        {% endif %}
-
-                        <h3>{{ rule.summary }}</h3>
-                    </div>
-
-                    <br>
-                    <br>
-
-                    <div class="rule-actions">
-
-                        <!-- ACTIVATE / DEACTIVATE -->
-                        {% if rule.is_active %}
-                        <form method="POST" action="/shopify/deactivate_rule/">
-                            {% csrf_token %}
-                            <input type="hidden" name="rule_id" value="{{ rule.id }}">
-                            <button type="submit" class="deactivate">Deactivate</button>
-                        </form>
-                        {% else %}
-                        <form method="POST" action="/shopify/activate_rule/">
-                            {% csrf_token %}
-                            <input type="hidden" name="rule_id" value="{{ rule.id }}">
-                            <button type="submit" class="activate">Activate</button>
-                        </form>
-                        {% endif %}
-
-                        <!-- DELETE -->
-                        <form method="POST" action="/shopify/delete_rule/">
-                            {% csrf_token %}
-                            <input type="hidden" name="rule_id" value="{{ rule.id }}">
-                            <button type="submit" class="delete">Delete</button>
-                        </form>
-
-                    </div>
-                </div>
-                {% endfor %}
-
-                <a href="{% url 'create_rule' %}?shop={{ shop.shop_domain }}" style="text-decoration: none;">
-                    <div class="rule-card-plus">
-                        +
-                    </div>
-                </a>
-            </div>
-        </div>
-        {% else %}
-        <div class="list">
-            <div class="no-rule">
-                <div class="no-rule-section">
-                    <img src="{% static 'img/empty-folder.png' %}" alt="">
-                    <br>
-                    You have no rule listed<a href="">Create Rule</a>
-                </div>
-            </div>
-        </div>
-        {% endif %}
     </div>
 
-
-    <div class="footer">
-        <a href="{% url 'privacy_policy' %}?shop={{ shop.shop_domain }}">Privacy Policy</a>
-        <a style="margin-left: 30px;" href="{% url 'data_deletion_policy' %}?shop={{ shop.shop_domain }}">Data Deletion
-            Policy</a>
-    </div>
     <script>
+        function startUpgrade() {
+            const shop = "{{ shop.shop_domain }}";
+            const host = "{{ host }}";
 
+            const url = `/shopify/billing/upgrade/?shop=${shop}&host=${host}`;
+
+            // 🔑 THIS is the key: break out of iframe
+            window.top.location.href = url;
+        }
     </script>
 </body>
 

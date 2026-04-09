@@ -15,7 +15,6 @@ body{
 }
 
 .navbar {
-    
     padding: 70px;
     background-color: rgba(137, 43, 226, 0);
 }
@@ -39,12 +38,12 @@ body{
 }
 
 .navbar-section-left img {
-    height: 40px;
-    margin-right: 10px;
+    height: 35px;
+    margin-right: 7px;
 }
 
 .navbar-section-left h1 {
-    font-size: 38px;
+    font-size: 33px;
 }
 
 .navbar-section-right {
@@ -55,7 +54,7 @@ body{
 }
 
 .navbar-section-right h1 {
-    font-size: 38px;
+    font-size: 33px;
 }
 
 .container {
@@ -232,31 +231,6 @@ body{
     
 }
 
-.rule-card{
-background: linear-gradient(350deg, #9f9f9f 63%, #fc9444dc, rgba(255, 43, 43, 0.896));
-}
-
-/* 5-gradient cycle */
-.rule-card:nth-child(5n+1) {
-    background: linear-gradient(251deg, #9f9f9f 63%, #ec802eee, rgba(255, 43, 43, 0.797));
-}
-
-.rule-card:nth-child(5n+2) {
-    background: linear-gradient(300deg, #9f9f9f 63%, #fc9444dc, rgba(255, 43, 43, 0.797));;
-}
-
-.rule-card:nth-child(5n+3) {
-    background: linear-gradient(30deg, #9f9f9f 63%, #fc9444dc, rgba(255, 43, 43, 0.797));
-}
-
-.rule-card:nth-child(5n+4) {
-    background: linear-gradient(284deg, #9f9f9f 63%, #fc9444dc, rgba(255, 43, 43, 0.797));;
-}
-
-.rule-card:nth-child(5n+5) {
-    background: linear-gradient(310deg, #9f9f9f 63%, #fc9444dc, rgba(255, 43, 43, 0.797));
-}
-
 .rule-card-plus{
     display: flex;
     justify-content: center;
@@ -264,6 +238,7 @@ background: linear-gradient(350deg, #9f9f9f 63%, #fc9444dc, rgba(255, 43, 43, 0.
     font-size: 70px;
     background: linear-gradient(to top, rgba(255, 43, 43, 0.67), #ff9e54);
     color: white;
+    height: stretch;
 }
 
 .rule-name{
